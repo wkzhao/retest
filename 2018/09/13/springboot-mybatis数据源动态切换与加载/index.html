@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.1',
+    sidebar: {"position":"left","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="&amp;emsp;&amp;emsp;对于动态切换数据源，需要一个类继承AbstractRoutingDataSource,继承该抽象类的时候，必须实现一个抽象方法：protected abstract Object determineCurrentLookupKey()，该方法用于指定到底需要使用哪一个数据源。">
+<meta name="keywords" content="springboot,mybatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springboot+mybatis数据源动态切换与加载">
+<meta property="og:url" content="http://yoursite.com/2018/09/13/springboot-mybatis数据源动态切换与加载/index.html">
+<meta property="og:site_name" content="藏经阁">
+<meta property="og:description" content="&amp;emsp;&amp;emsp;对于动态切换数据源，需要一个类继承AbstractRoutingDataSource,继承该抽象类的时候，必须实现一个抽象方法：protected abstract Object determineCurrentLookupKey()，该方法用于指定到底需要使用哪一个数据源。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/13528017-397a6fa8641f93d9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-09-13T15:30:07.603Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="springboot+mybatis数据源动态切换与加载">
+<meta name="twitter:description" content="&amp;emsp;&amp;emsp;对于动态切换数据源，需要一个类继承AbstractRoutingDataSource,继承该抽象类的时候，必须实现一个抽象方法：protected abstract Object determineCurrentLookupKey()，该方法用于指定到底需要使用哪一个数据源。">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/13528017-397a6fa8641f93d9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/09/13/springboot-mybatis数据源动态切换与加载/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>springboot+mybatis数据源动态切换与加载 | 藏经阁</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">藏经阁</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">吾生也有涯，而知也无涯</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/13/springboot-mybatis数据源动态切换与加载/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="wenkun zhao">
+      <meta itemprop="description" content="我达达的马蹄是美丽的错误 我不是归人,是个过客">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="藏经阁">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">springboot+mybatis数据源动态切换与加载
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-09-13 23:04:24 / 修改时间：23:30:07" itemprop="dateCreated datePublished" datetime="2018-09-13T23:04:24+08:00">2018-09-13</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/微服务/" itemprop="url" rel="index"><span itemprop="name">微服务</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>&emsp;&emsp;对于动态切换数据源，需要一个类继承AbstractRoutingDataSource,继承该抽象类的时候，必须实现一个抽象方法：protected abstract Object determineCurrentLookupKey()，该方法用于指定到底需要使用哪一个数据源。</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line">public abstract class AbstractRoutingDataSource extends AbstractDataSource implements InitializingBean &#123;</span><br><span class="line">    private Map&lt;Object, Object&gt; targetDataSources;</span><br><span class="line">    private Object defaultTargetDataSource;</span><br><span class="line">    private boolean lenientFallback = true;</span><br><span class="line">    private DataSourceLookup dataSourceLookup = new JndiDataSourceLookup();</span><br><span class="line">    private Map&lt;Object, DataSource&gt; resolvedDataSources;</span><br><span class="line">    private DataSource resolvedDefaultDataSource;</span><br><span class="line"></span><br><span class="line">    public AbstractRoutingDataSource() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setTargetDataSources(Map&lt;Object, Object&gt; targetDataSources) &#123;</span><br><span class="line">        this.targetDataSources = targetDataSources;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setDefaultTargetDataSource(Object defaultTargetDataSource) &#123;</span><br><span class="line">        this.defaultTargetDataSource = defaultTargetDataSource;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setLenientFallback(boolean lenientFallback) &#123;</span><br><span class="line">        this.lenientFallback = lenientFallback;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setDataSourceLookup(DataSourceLookup dataSourceLookup) &#123;</span><br><span class="line">        this.dataSourceLookup = (DataSourceLookup)(dataSourceLookup != null ? dataSourceLookup : new JndiDataSourceLookup());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void afterPropertiesSet() &#123;</span><br><span class="line">        if (this.targetDataSources == null) &#123;</span><br><span class="line">            throw new IllegalArgumentException(&quot;Property &apos;targetDataSources&apos; is required&quot;);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            this.resolvedDataSources = new HashMap(this.targetDataSources.size());</span><br><span class="line">            Iterator var1 = this.targetDataSources.entrySet().iterator();</span><br><span class="line"></span><br><span class="line">            while(var1.hasNext()) &#123;</span><br><span class="line">                Entry&lt;Object, Object&gt; entry = (Entry)var1.next();</span><br><span class="line">                Object lookupKey = this.resolveSpecifiedLookupKey(entry.getKey());</span><br><span class="line">                DataSource dataSource = this.resolveSpecifiedDataSource(entry.getValue());</span><br><span class="line">                this.resolvedDataSources.put(lookupKey, dataSource);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if (this.defaultTargetDataSource != null) &#123;</span><br><span class="line">                this.resolvedDefaultDataSource = this.resolveSpecifiedDataSource(this.defaultTargetDataSource);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected Object resolveSpecifiedLookupKey(Object lookupKey) &#123;</span><br><span class="line">        return lookupKey;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected DataSource resolveSpecifiedDataSource(Object dataSource) throws IllegalArgumentException &#123;</span><br><span class="line">        if (dataSource instanceof DataSource) &#123;</span><br><span class="line">            return (DataSource)dataSource;</span><br><span class="line">        &#125; else if (dataSource instanceof String) &#123;</span><br><span class="line">            return this.dataSourceLookup.getDataSource((String)dataSource);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            throw new IllegalArgumentException(&quot;Illegal data source value - only [javax.sql.DataSource] and String supported: &quot; + dataSource);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Connection getConnection() throws SQLException &#123;</span><br><span class="line">        return this.determineTargetDataSource().getConnection();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Connection getConnection(String username, String password) throws SQLException &#123;</span><br><span class="line">        return this.determineTargetDataSource().getConnection(username, password);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public &lt;T&gt; T unwrap(Class&lt;T&gt; iface) throws SQLException &#123;</span><br><span class="line">        return iface.isInstance(this) ? this : this.determineTargetDataSource().unwrap(iface);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public boolean isWrapperFor(Class&lt;?&gt; iface) throws SQLException &#123;</span><br><span class="line">        return iface.isInstance(this) || this.determineTargetDataSource().isWrapperFor(iface);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected DataSource determineTargetDataSource() &#123;</span><br><span class="line">        Assert.notNull(this.resolvedDataSources, &quot;DataSource router not initialized&quot;);</span><br><span class="line">        Object lookupKey = this.determineCurrentLookupKey();</span><br><span class="line">        DataSource dataSource = (DataSource)this.resolvedDataSources.get(lookupKey);</span><br><span class="line">        if (dataSource == null &amp;&amp; (this.lenientFallback || lookupKey == null)) &#123;</span><br><span class="line">            dataSource = this.resolvedDefaultDataSource;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (dataSource == null) &#123;</span><br><span class="line">            throw new IllegalStateException(&quot;Cannot determine target DataSource for lookup key [&quot; + lookupKey + &quot;]&quot;);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            return dataSource;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected abstract Object determineCurrentLookupKey();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;自定义动态数据源类<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">import com.example.savesearchservice.util.DataSourceUtil;</span><br><span class="line">import com.example.savesearchservice.util.DynamicDatasourceHolder;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.logging.Log;</span><br><span class="line">import org.apache.commons.logging.LogFactory;</span><br><span class="line">import org.springframework.boot.jdbc.DataSourceBuilder;</span><br><span class="line">import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;</span><br><span class="line"></span><br><span class="line">import java.util.Map;</span><br><span class="line">import java.util.concurrent.ConcurrentHashMap;</span><br><span class="line"></span><br><span class="line">import javax.sql.DataSource;</span><br><span class="line"></span><br><span class="line">public class DynamicDataSource extends AbstractRoutingDataSource &#123;</span><br><span class="line"></span><br><span class="line">    private static final Log logger = LogFactory.getLog(DynamicDataSource.class);</span><br><span class="line"></span><br><span class="line">    private static Map&lt;Object, Object&gt; datasourceMap = new ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected Object determineCurrentLookupKey() &#123;</span><br><span class="line">        logger.info(&quot;current dataSourceId:&quot; + DynamicDatasourceHolder.get());</span><br><span class="line">        return DynamicDatasourceHolder.get();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public DataSource createDatasource(String id, String url, String username, String password, String driverClassName) &#123;</span><br><span class="line">        DataSource dataSource = DataSourceBuilder.create()</span><br><span class="line">                .url(url)</span><br><span class="line">                .username(username)</span><br><span class="line">                .password(password)</span><br><span class="line">                .driverClassName(driverClassName)</span><br><span class="line">                .build();</span><br><span class="line">        if (dataSource != null) &#123;</span><br><span class="line">            DataSourceUtil.put(id, id);</span><br><span class="line">            datasourceMap.put(id, dataSource);</span><br><span class="line"></span><br><span class="line">            //调用父类方法赋值Map&lt;Object, DataSource&gt; resolvedDataSources</span><br><span class="line">            super.setTargetDataSources(datasourceMap);</span><br><span class="line">            super.afterPropertiesSet();</span><br><span class="line">            return dataSource;</span><br><span class="line">        &#125;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;通过ThreadLocal维护一个全局唯一的map来实现数据源的动态切换<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public class DynamicDatasourceHolder &#123;</span><br><span class="line">    private static final ThreadLocal&lt;String&gt; DATASOURCE_HOLDER = new ThreadLocal&lt;&gt;();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    public static void add(String datasource) &#123;</span><br><span class="line">        DATASOURCE_HOLDER.set(datasource);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static String get() &#123;</span><br><span class="line">        return DATASOURCE_HOLDER.get();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void clear() &#123;</span><br><span class="line">        DATASOURCE_HOLDER.remove();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;通过AOP切面实现动态切换数据源，这里假设projectId与dataSourceId有对应关系<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">import com.example.savesearchservice.annotation.DataSource;</span><br><span class="line">import com.example.savesearchservice.datasource.DynamicDataSource;</span><br><span class="line">import com.example.savesearchservice.util.DataSourceUtil;</span><br><span class="line">import com.example.savesearchservice.util.DynamicDatasourceHolder;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.lang.StringUtils;</span><br><span class="line">import org.apache.commons.logging.Log;</span><br><span class="line">import org.apache.commons.logging.LogFactory;</span><br><span class="line">import org.aspectj.lang.JoinPoint;</span><br><span class="line">import org.aspectj.lang.annotation.After;</span><br><span class="line">import org.aspectj.lang.annotation.Aspect;</span><br><span class="line">import org.aspectj.lang.annotation.Before;</span><br><span class="line">import org.aspectj.lang.annotation.Pointcut;</span><br><span class="line">import org.springframework.beans.BeansException;</span><br><span class="line">import org.springframework.context.ApplicationContext;</span><br><span class="line">import org.springframework.context.ApplicationContextAware;</span><br><span class="line">import org.springframework.core.annotation.Order;</span><br><span class="line">import org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line">@Component</span><br><span class="line">@Aspect</span><br><span class="line">@Order(-1)</span><br><span class="line">public class DynamicDataSourceAOP implements ApplicationContextAware &#123;</span><br><span class="line"></span><br><span class="line">    private static final Log logger = LogFactory.getLog(DynamicDataSourceAOP.class);</span><br><span class="line"></span><br><span class="line">    private ApplicationContext applicationContext;</span><br><span class="line"></span><br><span class="line">    @Pointcut(&quot;execution(* com.example.controller*(..))&quot;)</span><br><span class="line">    public void pointCut() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 执行方法前更换数据源</span><br><span class="line">     *</span><br><span class="line">     * @param joinPoint 切点</span><br><span class="line">     */</span><br><span class="line">    @Before(&quot;@annotation(dataSource)&quot;)</span><br><span class="line">    public void doBefore(JoinPoint joinPoint, DataSource dataSource) &#123;</span><br><span class="line"></span><br><span class="line">        logger.info(&quot;Enter DataSourceAOP&quot;);</span><br><span class="line">        String projectId = DataSourceUtil.DEFAULT;</span><br><span class="line">        Object[] args = joinPoint.getArgs();</span><br><span class="line">        if (args.length &gt;= 1) &#123;</span><br><span class="line">            projectId = String.valueOf(args[0]);</span><br><span class="line">        &#125;</span><br><span class="line">        projectId = StringUtils.defaultIfBlank(projectId, DataSourceUtil.DEFAULT);</span><br><span class="line">        if (!DataSourceUtil.contains(projectId)) &#123;</span><br><span class="line">            DynamicDataSource dynamicDataSource = applicationContext.getBean(DynamicDataSource.class);</span><br><span class="line"></span><br><span class="line">            //这里可以根据需要从数据库或者其他地方获取数据源连接信息</span><br><span class="line">            dynamicDataSource.createDatasource(projectId,</span><br><span class="line">                    &quot;jdbc:mysql://localhost:3306/dynamic_datasource?useSSL=true&amp;useUnicode=true&amp;characterEncoding=utf8&quot;,</span><br><span class="line">                    &quot;XXX&quot;, &quot;XXX&quot;, &quot;com.mysql.cj.jdbc.Driver&quot;);</span><br><span class="line">            DynamicDatasourceHolder.add(DataSourceUtil.getDataSourceId(projectId));</span><br><span class="line">            logger.info(String.format(&quot;change dataSource for %s,dataSourceId: %s&quot;, projectId, DataSourceUtil.getDataSourceId(projectId)));</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        DynamicDatasourceHolder.add(DataSourceUtil.getDataSourceId(projectId));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 执行方法后清除数据源设置</span><br><span class="line">     *</span><br><span class="line">     * @param joinPoint 切点</span><br><span class="line">     */</span><br><span class="line">    @After(&quot;@annotation(dataSource)&quot;)</span><br><span class="line">    public void doAfter(JoinPoint joinPoint, DataSource dataSource) &#123;</span><br><span class="line">        DynamicDatasourceHolder.clear();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException &#123;</span><br><span class="line">        this.applicationContext = applicationContext;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;新建DataSourceUtil类保存projectId与dataSourceId的对应关系<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">import java.util.Map;</span><br><span class="line">import java.util.concurrent.ConcurrentHashMap;</span><br><span class="line"></span><br><span class="line">public class DataSourceUtil &#123;</span><br><span class="line"></span><br><span class="line">    public static final String DEFAULT = &quot;default&quot;;</span><br><span class="line"></span><br><span class="line">    private static final Map&lt;String, String&gt; dataSourceMap = new ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    private DataSourceUtil() &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void put(String projectId, String dataSource) &#123;</span><br><span class="line">        dataSourceMap.put(projectId, dataSource);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static boolean contains(String projectId) &#123;</span><br><span class="line">        return dataSourceMap.get(projectId) != null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static String getDataSourceId(String projectId) &#123;</span><br><span class="line">        return dataSourceMap.get(projectId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;springboot启动时的配置类配置默认datasource<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">import com.example.savesearchservice.datasource.DynamicDataSource;</span><br><span class="line">import com.example.savesearchservice.util.DataSourceUtil;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.logging.Log;</span><br><span class="line">import org.apache.commons.logging.LogFactory;</span><br><span class="line">import org.apache.ibatis.session.SqlSessionFactory;</span><br><span class="line">import org.mybatis.spring.SqlSessionFactoryBean;</span><br><span class="line">import org.mybatis.spring.annotation.MapperScan;</span><br><span class="line">import org.mybatis.spring.mapper.MapperScannerConfigurer;</span><br><span class="line">import org.springframework.context.EnvironmentAware;</span><br><span class="line">import org.springframework.context.annotation.Bean;</span><br><span class="line">import org.springframework.context.annotation.Configuration;</span><br><span class="line">import org.springframework.core.env.Environment;</span><br><span class="line">import org.springframework.core.io.ClassPathResource;</span><br><span class="line">import org.springframework.jdbc.datasource.DataSourceTransactionManager;</span><br><span class="line"></span><br><span class="line">import javax.sql.DataSource;</span><br><span class="line"></span><br><span class="line">import lombok.NonNull;</span><br><span class="line"></span><br><span class="line">@Configuration</span><br><span class="line">@MapperScan(&quot;com.example.savesearchservice.dao&quot;)</span><br><span class="line">public class DataSourceConfiguration implements EnvironmentAware &#123;</span><br><span class="line"></span><br><span class="line">    private static Log logger = LogFactory.getLog(DataSourceConfiguration.class);</span><br><span class="line"></span><br><span class="line">    private Environment environment;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    DataSource dataSource() &#123;</span><br><span class="line">        logger.info(&quot;environment:&quot; + environment);</span><br><span class="line">        DynamicDataSource dynamicDataSource = new DynamicDataSource();</span><br><span class="line">        DataSource dataSource = dynamicDataSource.createDatasource(DataSourceUtil.DEFAULT,</span><br><span class="line">                environment.getProperty(&quot;datasource.url&quot;),</span><br><span class="line">                environment.getProperty(&quot;datasource.username&quot;),</span><br><span class="line">                environment.getProperty(&quot;datasource.password&quot;),</span><br><span class="line">                environment.getProperty(&quot;datasource.driver-class-name&quot;));</span><br><span class="line">        dynamicDataSource.setDefaultTargetDataSource(dataSource);</span><br><span class="line">        return dynamicDataSource;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception &#123;</span><br><span class="line">        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();</span><br><span class="line">        sqlSessionFactoryBean.setDataSource(dataSource);</span><br><span class="line">        sqlSessionFactoryBean.setConfigLocation(new ClassPathResource(&quot;mybatis/mybatis-conf.xml&quot;));</span><br><span class="line">        return sqlSessionFactoryBean.getObject();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    MapperScannerConfigurer mapperScannerConfigurer() &#123;</span><br><span class="line">        MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();</span><br><span class="line">        mapperScannerConfigurer.setAnnotationClass(com.example.savesearchservice.annotation.DataSource.class);</span><br><span class="line">        mapperScannerConfigurer.setBasePackage(&quot;com.example.savesearchservice.dao&quot;);</span><br><span class="line">        mapperScannerConfigurer.setSqlSessionFactoryBeanName(&quot;sqlSessionFactory&quot;);</span><br><span class="line">        return mapperScannerConfigurer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    DataSourceTransactionManager dataSourceTransactionManager(DataSource dataSource) &#123;</span><br><span class="line">        DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();</span><br><span class="line">        dataSourceTransactionManager.setDataSource(dataSource);</span><br><span class="line">        return dataSourceTransactionManager;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void setEnvironment(@NonNull Environment environment) &#123;</span><br><span class="line">        this.environment = environment;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>&emsp;&emsp;可以看到，已经实现了数据源的动态切换<br><img src="https://upload-images.jianshu.io/upload_images/13528017-397a6fa8641f93d9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/springboot/" rel="tag"># springboot</a>
+          
+            <a href="/tags/mybatis/" rel="tag"># mybatis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/13/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.png"
+                alt="wenkun zhao" />
+            
+              <p class="site-author-name" itemprop="name">wenkun zhao</p>
+              <p class="site-description motion-element" itemprop="description">我达达的马蹄是美丽的错误 我不是归人,是个过客</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                    <span class="site-state-item-count">1</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/wkzhao" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:770692160@qq.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wenkun zhao</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Pisces</a> v6.4.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
