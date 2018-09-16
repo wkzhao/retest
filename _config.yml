@@ -122,17 +122,4 @@ search:
   path: search.xml
   # 如只想索引文章，可设置为post
   field: post
-  
-  #RSS订阅
-plugin:
-- hexo-generator-feed
-#Feed Atom
-feed:
-type: atom
-path: atom.xml
-limit: 20
 
-#打赏
-#reward_comment: 坚持原创技术分享，您的支持将鼓励我继续创作！
-#wechatpay: http://cgcyg.img48.wal8.com/img48/564414_20170102112604/14833637422.png
-#alipay: http://cgcyg.img48.wal8.com/img48/564414_20170102112604/148336403046.png

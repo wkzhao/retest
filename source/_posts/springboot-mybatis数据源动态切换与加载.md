@@ -11,7 +11,7 @@ tags:
 &emsp;&emsp;对于动态切换数据源，需要一个类继承AbstractRoutingDataSource,继承该抽象类的时候，必须实现一个抽象方法：protected abstract Object determineCurrentLookupKey()，该方法用于指定到底需要使用哪一个数据源。
 
 <!--more-->
-````
+```Java
 public abstract class AbstractRoutingDataSource extends AbstractDataSource implements InitializingBean {
     private Map<Object, Object> targetDataSources;
     private Object defaultTargetDataSource;
@@ -107,9 +107,9 @@ public abstract class AbstractRoutingDataSource extends AbstractDataSource imple
 
     protected abstract Object determineCurrentLookupKey();
 }
-````
+```
 &emsp;&emsp;自定义动态数据源类
-````
+```Java
 import com.example.savesearchservice.util.DataSourceUtil;
 import com.example.savesearchservice.util.DynamicDatasourceHolder;
 
@@ -155,9 +155,9 @@ public class DynamicDataSource extends AbstractRoutingDataSource {
     }
 }
 
-````
+```
 &emsp;&emsp;通过ThreadLocal维护一个全局唯一的map来实现数据源的动态切换
-````
+```Java
 public class DynamicDatasourceHolder {
     private static final ThreadLocal<String> DATASOURCE_HOLDER = new ThreadLocal<>();
 
@@ -174,9 +174,9 @@ public class DynamicDatasourceHolder {
         DATASOURCE_HOLDER.remove();
     }
 }
-````
+```
 &emsp;&emsp;通过AOP切面实现动态切换数据源，这里假设projectId与dataSourceId有对应关系
-````
+```Java
 import com.example.savesearchservice.annotation.DataSource;
 import com.example.savesearchservice.datasource.DynamicDataSource;
 import com.example.savesearchservice.util.DataSourceUtil;
@@ -254,9 +254,9 @@ public class DynamicDataSourceAOP implements ApplicationContextAware {
         this.applicationContext = applicationContext;
     }
 }
-````
+```
 &emsp;&emsp;新建DataSourceUtil类保存projectId与dataSourceId的对应关系
-````
+```Java
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -281,9 +281,9 @@ public class DataSourceUtil {
         return dataSourceMap.get(projectId);
     }
 }
-````
+```
 &emsp;&emsp;springboot启动时的配置类配置默认datasource
-````
+```Java
 
 import com.example.savesearchservice.datasource.DynamicDataSource;
 import com.example.savesearchservice.util.DataSourceUtil;
@@ -356,7 +356,7 @@ public class DataSourceConfiguration implements EnvironmentAware {
     }
 }
 
-````
+```
 &emsp;&emsp;可以看到，已经实现了数据源的动态切换
 ![](https://upload-images.jianshu.io/upload_images/13528017-397a6fa8641f93d9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
