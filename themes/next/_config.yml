@@ -195,7 +195,7 @@ avatar:
   # in theme directory(source/images): /images/avatar.gif
   # in site  directory(source/uploads): /uploads/avatar.gif
   # You can also use other linking images.
-  url: http://ae01.alicdn.com/kf/HTB1E4PfXMTqK1RjSZPh760fOFXac.png
+  url: https://daocom-uploads-cdn.daovoice.io/image/png/03f315d9-274c-4502-9c0c-f6dcc0a52faf.png  
   # If true, the avatar would be dispalyed in circle.
   rounded: false
   # The value of opacity should be choose from 0 to 1 to set the opacity of the avatar.
@@ -960,4 +960,6 @@ images: images
 passage_end_tag:
   enabled: true
 
-
+# Online contact 
+daovoice: true
+daovoice_app_id: 1d715949
